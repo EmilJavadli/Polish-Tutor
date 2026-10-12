@@ -98,19 +98,50 @@ def rerun_fragment_or_app(*, full_app: bool = False) -> None:
         st.rerun()
 
 
-def audio_block(day: int, kind: str, label: str, make_audio) -> None:
+def audio_block(
+    day: int,
+    kind: str,
+    label: str,
+    make_audio,
+) -> None:
     path = repo.audio_path(day, kind)
+
     if path.exists():
         st.audio(path.read_bytes(), format="audio/mpeg")
-    elif not tts_available():
-        st.caption("🔇 Add ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID to secrets.toml to enable audio.")
-    elif st.button(label, key=f"tts_{day}_{kind}"):
-        with st.spinner("Recording…"):
+        return
+
+    if not tts_available():
+        st.caption(
+            "🔇 Add ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID "
+            "to secrets.toml to enable audio."
+        )
+        return
+
+    button_key = f"tts_{day}_{kind}"
+    state_key = f"audio_{day}_{kind}"
+
+    # Audio generated during the current session.
+    if state_key in st.session_state:
+        st.audio(
+            st.session_state[state_key],
+            format="audio/mpeg",
+        )
+        return
+
+    if st.button(label, key=button_key):
+        with st.spinner("Creating recording…"):
             try:
-                path.write_bytes(make_audio())
-                st.rerun()
+                audio_bytes = make_audio()
+
+                path.write_bytes(audio_bytes)
+                st.session_state[state_key] = audio_bytes
+
+                # Display immediately in the same run.
+                st.audio(audio_bytes, format="audio/mpeg")
+                st.toast("Recording created", icon="🎧")
+
             except Exception as exc:
-                st.error(str(exc))
+                st.error(f"Audio generation failed: {exc}")
 
 
 def render_feedback(fb: ProductionFeedback, max_score: int = 20) -> None:
@@ -137,7 +168,7 @@ def correct_answer_text(item) -> str:
 # =========================================================================
 # sections
 # =========================================================================
-
+@st.fragment
 def render_reading(lesson: Lesson) -> None:
     st.caption(f"Text type: **{lesson.text_type}**, as in TELC *Rozumienie tekstu pisanego*. "
                "Read it twice: first for the general idea, then for details.")
@@ -456,28 +487,81 @@ def render_quiz(lesson: Lesson) -> None:
 @st.fragment
 def render_chat(lesson: Lesson) -> None:
     st.subheader("💬 Ask your tutor")
-    key = f"chat_{lesson.day}"
-    history: list[dict] = st.session_state.setdefault(key, [])
-    box = st.container(height=560)
-    with box:
+
+    history_key = f"chat_{lesson.day}"
+    persisted = repo.get_progress(lesson.day)
+
+    if history_key not in st.session_state:
+        st.session_state[history_key] = persisted.get(
+            "chat_history",
+            [],
+        )
+
+    history: list[dict] = st.session_state[history_key]
+
+    chat_area = st.container(
+        height=560,
+        border=True,
+    )
+
+    with chat_area:
         if not history:
-            st.caption("Examples: *What does „zamówić” mean?*")
-        for msg in history:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-    question = st.chat_input("Ask about a word, phrase or grammar…")
-    if question:
-        history.append({"role": "user", "content": question})
-        with box:
-            with st.chat_message("user"):
-                st.markdown(question)
-            with st.chat_message("assistant"):
-                try:
-                    answer = st.write_stream(stream_tutor_reply(lesson, history))
-                except Exception as exc:
-                    answer = f"⚠️ Sorry, something went wrong: {exc}"
-                    st.error(answer)
-        history.append({"role": "assistant", "content": answer})
+            st.caption(
+                "Ask about vocabulary, grammar, pronunciation, "
+                "or sentences from today's lesson."
+            )
+
+        for message in history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+    question = st.chat_input(
+        "Ask about a word, phrase, or grammar…",
+        key=f"chat_input_{lesson.day}",
+    )
+
+    if not question:
+        return
+
+    user_message = {
+        "role": "user",
+        "content": question,
+    }
+    history.append(user_message)
+
+    with chat_area:
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            try:
+                answer = st.write_stream(
+                    stream_tutor_reply(
+                        lesson,
+                        history,
+                    )
+                )
+            except Exception as exc:
+                answer = (
+                    "Sorry, the tutor could not answer. "
+                    f"Technical details: {exc}"
+                )
+                st.error(answer)
+
+    history.append(
+        {
+            "role": "assistant",
+            "content": answer,
+        }
+    )
+
+    repo.save_progress(
+        lesson.day,
+        {
+            **persisted,
+            "chat_history": history,
+        },
+    )
 
 
 def render_plan_page() -> None:
@@ -623,7 +707,7 @@ lesson_col, chat_col = st.columns([3, 2], gap="large")
 with lesson_col:
     tabs = st.tabs([
         f"📖 Reading · {TIME_PLAN['Reading']}′", f"🎧 Listening · {TIME_PLAN['Listening']}′",
-        f"🔤 Words · {TIME_PLAN['Words']}′", f"📐 Grammar · {TIME_PLAN['Grammar']}′",
+        f"🔤 Vocabulary · {TIME_PLAN['Words']}′", f"📐 Grammar · {TIME_PLAN['Grammar']}′",
         f"✏️ Exercises · {TIME_PLAN['Exercises']}′", f"📝 Writing · {TIME_PLAN['Writing']}′",
         f"🗣️ Speaking · {TIME_PLAN['Speaking']}′", f"✅ Quiz · {TIME_PLAN['Quiz']}′",
     ])

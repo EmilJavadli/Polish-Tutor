@@ -1,4 +1,5 @@
 """Reviewed placement items. Keep versioned and stable for comparable results."""
+
 GRAMMAR_VOCAB=[
 {'id':'g1','band':'A1','q':'Mam na ___ Emil.','options':['imię','imięm','imiona'],'answer':0},
 {'id':'g2','band':'A1','q':'Mieszkam ___ Krakowie.','options':['do','w','z'],'answer':1},
@@ -9,7 +10,12 @@ GRAMMAR_VOCAB=[
 {'id':'g7','band':'B1','q':'Uczę się polskiego, ___ zdać egzamin.','options':['żeby','chociaż','dlatego'],'answer':0},
 {'id':'g8','band':'B1','q':'Gdybym miał czas, ___ częściej.','options':['czytam','czytałbym','przeczytam'],'answer':1},
 ]
-READING_TEXT='''Anna mieszka w Krakowie od trzech lat. Pracuje w małej firmie informatycznej. Do pracy zwykle jedzie tramwajem, ale w piątki pracuje z domu. W zeszłym tygodniu zapisała się na kurs języka polskiego, ponieważ chce swobodniej rozmawiać z sąsiadami i załatwiać sprawy w urzędzie. Zajęcia odbywają się dwa razy w tygodniu wieczorem.'''
+
+READING_TEXT='''Anna mieszka w Krakowie od trzech lat. Pracuje w małej firmie informatycznej. 
+Do pracy zwykle jedzie tramwajem, ale w piątki pracuje z domu. 
+W zeszłym tygodniu zapisała się na kurs języka polskiego, ponieważ chce swobodniej rozmawiać z sąsiadami i załatwiać sprawy w urzędzie. 
+Zajęcia odbywają się dwa razy w tygodniu wieczorem.'''
+
 READING=[
 {'id':'r1','band':'A1','q':'Gdzie mieszka Anna?','options':['W Warszawie','W Krakowie','W Gdańsku'],'answer':1},
 {'id':'r2','band':'A1','q':'Jak zwykle jedzie do pracy?','options':['Tramwajem','Samochodem','Pociągiem'],'answer':0},
@@ -17,7 +23,12 @@ READING=[
 {'id':'r4','band':'A2','q':'Dlaczego zapisała się na kurs?','options':['Chce zmienić pracę','Chce lepiej komunikować się po polsku','Chce studiować informatykę'],'answer':1},
 {'id':'r5','band':'B1','q':'Które stwierdzenie najlepiej opisuje cel Anny?','options':['Potrzebuje polskiego głównie do podróży','Chce używać polskiego w życiu społecznym i formalnym','Chce uczyć polskiego innych'],'answer':1},
 ]
-LISTENING_TEXT='''Dzień dobry, mówi Marta Kowalska z przychodni. Dzwonię w sprawie wizyty u doktor Nowak. Niestety pani doktor będzie jutro nieobecna. Możemy zaproponować wizytę w czwartek o dziewiątej trzydzieści albo w piątek o szesnastej. Proszę oddzwonić do godziny osiemnastej i potwierdzić wybrany termin.'''
+
+LISTENING_TEXT='''Dzień dobry, mówi Marta Kowalska z przychodni. 
+Dzwonię w sprawie wizyty u doktor Nowak. Niestety pani doktor będzie jutro nieobecna. 
+Możemy zaproponować wizytę w czwartek o dziewiątej trzydzieści albo w piątek o szesnastej. 
+Proszę oddzwonić do godziny osiemnastej i potwierdzić wybrany termin.'''
+
 LISTENING=[
 {'id':'l1','band':'A1','q':'Skąd dzwoni Marta?','options':['Z przychodni','Ze szkoły','Z banku'],'answer':0},
 {'id':'l2','band':'A1','q':'Kogo dotyczy wizyta?','options':['Doktor Nowak','Doktor Kowalskiej','Dentysty'],'answer':0},
